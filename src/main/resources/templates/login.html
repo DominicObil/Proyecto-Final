@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="fragments/head :: head ('Cover Manager - Inicio')"></head>
+
+<body class="d-flex flex-column h-100">
+
+<!-- Fragmento del header -->
+<header th:replace="fragments/header :: header"></header>
+
+<!-- Contenido principal con el formulario de login -->
+<main class="flex-shrink-0">
+    <div class="container">
+        <h1 class="mt-5">Login</h1> <!-- Título del formulario de login -->
+
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <form th:action="@{/login}" method="post" class="form-signin">
+                    <!-- Campo de usuario -->
+                    <div class="form-group mb-3">
+                        <label for="username">Usuario</label> <!-- Etiqueta para el campo de usuario -->
+                        <input type="text" id="username" name="username" class="form-control" placeholder="Usuario" required autofocus> <!-- Campo de texto para usuario -->
+                    </div>
+                    <!-- Campo de contraseña -->
+                    <div class="form-group mb-3">
+                        <label for="password">Contraseña</label> <!-- Etiqueta para el campo de contraseña -->
+                        <input type="password" id="password" name="password" class="form-control" placeholder="Contraseña" required> <!-- Campo de contraseña -->
+                    </div>
+                    <!-- Botón de envío -->
+                    <button class="btn btn-primary w-100" type="submit">Iniciar sesión</button> <!-- Botón de login -->
+                </form>
+            </div>
+        </div>
+    </div>
+</main>
+
+<!-- Fragmento del footer -->
+<footer th:replace="fragments/footer :: footer"></footer>
+
+</body>
+</html>

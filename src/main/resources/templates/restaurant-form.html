@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head ('Restaurant Form')}"></head>
+<body>
+
+<header th:replace="~{fragments/header :: header}"></header>
+
+<main class="container mt-5">
+    <h1 th:text="${restaurante.id == null ? '#{msg.restaurant-form.add}' : '#{msg.restaurant-form.edit}'}"></h1>
+
+    <form th:action="|${restaurante.id == null ? '/restaurantes/save' : '/restaurantes/save'}|"
+          th:object="${restaurante}" method="post" class="mt-4">
+        <input type="hidden" th:field="*{id}" />
+
+        <div class="mb-3">
+            <label for="nombre" class="form-label" th:text="#{msg.restaurant-form.name}"></label>
+            <input type="text" th:field="*{nombre}" id="nombre" class="form-control" required />
+            <div th:if="${#fields.hasErrors('nombre')}" class="text-danger" th:errors="*{nombre}"></div>
+        </div>
+
+        <div class="mb-3">
+            <label for="direccion" class="form-label" th:text="#{msg.restaurant-form.address}"></label>
+            <input type="text" th:field="*{direccion}" id="direccion" class="form-control" required />
+            <div th:if="${#fields.hasErrors('direccion')}" class="text-danger" th:errors="*{direccion}"></div>
+        </div>
+
+        <div class="mb-3">
+            <label for="capacidad" class="form-label" th:text="#{msg.restaurant-form.capacity}"></label>
+            <input type="number" th:field="*{capacidad}" id="capacidad" class="form-control" required />
+            <div th:if="${#fields.hasErrors('capacidad')}" class="text-danger" th:errors="*{capacidad}"></div>
+        </div>
+
+        <div class="mb-3">
+            <label for="telefono" class="form-label" th:text="#{msg.restaurant-form.phone}"></label>
+            <input type="text" th:field="*{telefono}" id="telefono" class="form-control" required />
+            <div th:if="${#fields.hasErrors('telefono')}" class="text-danger" th:errors="*{telefono}"></div>
+        </div>
+
+        <button type="submit" class="btn btn-primary"
+                th:text="${restaurante.id == null ? '#{msg.restaurant-form.create}' : '#{msg.restaurant-form.update}'}"></button>
+    </form>
+
+    <!-- Enlace para regresar a la lista de restaurantes -->
+    <a th:href="@{/restaurantes}" class="btn btn-secondary mt-3" th:text="#{msg.restaurant.form.returnback}"></a>
+</main>
+
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+
+</body>
+</html>

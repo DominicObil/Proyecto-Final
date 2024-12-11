@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="fragments/head :: head ('Cover Manager - Inicio')"></head>
+
+<body>
+<header th:replace="fragments/header :: header"></header>
+<main class="container mt-4">
+  <h1>Listado de Reservas</h1>
+  <a href="/reservas/new" class="btn btn-primary">Añadir Reserva</a>
+  <table>
+    <thead>
+    <tr>
+      <th>Fecha</th>
+      <th>Hora</th>
+      <th>Número de Personas</th>
+      <th>Comentarios</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="reserva : ${reservas}">
+      <td th:text="${reserva.fechaReserva}"></td>
+      <td th:text="${reserva.horaReserva}"></td>
+      <td th:text="${reserva.numeroPersonas}"></td>
+      <td th:text="${reserva.comentarios}"></td>
+    </tr>
+    </tbody>
+  </table>
+
+</main>
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+</body>
+</html>

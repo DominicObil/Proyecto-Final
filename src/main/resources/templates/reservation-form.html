@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="fragments/head :: head ('Cover Manager - Inicio')"></head>
+
+<body>
+
+<header th:replace="fragments/header :: header"></header>
+<main class="container mt-4">
+    <h1 th:text="${#strings.isEmpty(reserva.id) ? 'Añadir Reserva' : 'Editar Reserva'}"></h1>
+    <form th:action="@{/reservas/save}" th:object="${reserva}" method="post">
+
+        <!-- Campo para la Fecha de la Reserva -->
+        <div>
+            <label for="fechaReserva">Fecha de la reserva</label>
+            <input type="date" th:field="*{fechaReserva}" id="fechaReserva" required/>
+            <span th:if="${#fields.hasErrors('fechaReserva')}" th:errors="*{fechaReserva}"></span>
+        </div>
+
+        <!-- Campo para la Hora de la Reserva -->
+        <div>
+            <label for="horaReserva">Hora de la reserva</label>
+            <input type="time" th:field="*{horaReserva}" id="horaReserva" required/>
+            <span th:if="${#fields.hasErrors('horaReserva')}" th:errors="*{horaReserva}"></span>
+        </div>
+
+        <!-- Campo para el Número de Personas -->
+        <div>
+            <label for="numeroPersonas">Número de personas</label>
+            <input type="number" th:field="*{numeroPersonas}" id="numeroPersonas" min="1" required/>
+            <span th:if="${#fields.hasErrors('numeroPersonas')}" th:errors="*{numeroPersonas}"></span>
+        </div>
+
+        <!-- Campo para Comentarios -->
+        <div>
+            <label for="comentarios">Comentarios (opcional)</label>
+            <textarea th:field="*{comentarios}" id="comentarios" maxlength="255"></textarea>
+            <span th:if="${#fields.hasErrors('comentarios')}" th:errors="*{comentarios}"></span>
+        </div>
+
+        <!-- Campo para seleccionar el Restaurante -->
+        <div>
+            <label for="restaurante">Restaurante</label>
+            <select th:field="*{restaurante}" id="restaurante" required>
+                <option th:each="restaurante : ${restaurantes}" th:value="${restaurante.id}" th:text="${restaurante.nombre}"></option>
+            </select>
+            <span th:if="${#fields.hasErrors('restaurante')}" th:errors="*{restaurante}"></span>
+        </div>
+
+        <!-- Botón de Enviar -->
+        <div>
+            <button type="submit">Enviar</button>
+        </div>
+    </form>
+
+</main>
+<footer th:replace="fragments/footer :: footer"></footer>
+</body>
+</html>
