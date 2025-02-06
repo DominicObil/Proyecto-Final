@@ -14,7 +14,7 @@ import java.time.LocalTime;
  * Contiene información sobre la fecha, hora, número de personas y comentarios adicionales.
  */
 @Entity
-@Table(name = "reservas")
+@Table(name = "Reservas")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

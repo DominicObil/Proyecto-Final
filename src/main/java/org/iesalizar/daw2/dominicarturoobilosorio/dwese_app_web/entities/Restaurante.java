@@ -13,7 +13,7 @@ import java.util.List;
  * Incluye información como el nombre, la dirección, el teléfono y su capacidad máxima.
  */
 @Entity
-@Table(name = "restaurante")
+@Table(name = "Restaurante")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
