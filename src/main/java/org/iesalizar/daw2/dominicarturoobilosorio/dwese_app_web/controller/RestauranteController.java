@@ -1,5 +1,12 @@
 package org.iesalizar.daw2.dominicarturoobilosorio.dwese_app_web.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.iesalizar.daw2.dominicarturoobilosorio.dwese_app_web.dtos.RestauranteCreateDTO;
 import org.iesalizar.daw2.dominicarturoobilosorio.dwese_app_web.dtos.RestauranteDTO;
@@ -7,16 +14,22 @@ import org.iesalizar.daw2.dominicarturoobilosorio.dwese_app_web.service.Restaura
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 
+/**
+ * Controlador REST para la gestión de restaurantes.
+ */
 @RestController
 @RequestMapping("/api/restaurantes")
+@Tag(name = "Restaurantes", description = "API para gestionar restaurantes")
 public class RestauranteController {
 
     private static final Logger logger = LoggerFactory.getLogger(RestauranteController.class);
@@ -25,24 +38,42 @@ public class RestauranteController {
     private RestauranteService restauranteService;
 
     /**
-     * Obtiene la lista de todos los restaurantes.
+     * Obtiene la lista de todos los restaurantes con paginación.
      */
+    @Operation(summary = "Obtener todos los restaurantes", description = "Devuelve una lista paginada de restaurantes.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Lista de restaurantes recuperada exitosamente",
+                    content = @Content(mediaType = "application/json",
+                            array = @ArraySchema(schema = @Schema(implementation = RestauranteDTO.class)))),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor")
+    })
+
     @GetMapping
-    public ResponseEntity<List<RestauranteDTO>> getAllRestaurantes() {
-        logger.info("Obteniendo todos los restaurantes...");
+    public ResponseEntity<?> getAllRestaurantes(@PageableDefault(size = 10, sort = "nombre") Pageable pageable) {
+        logger.info("Solicitando todos los restaurantes con paginación: página {}, tamaño {}",
+                pageable.getPageNumber(), pageable.getPageSize());
+
         try {
-            List<RestauranteDTO> restaurantes = restauranteService.getAllRestaurantes();
-            logger.info("Se encontraron {} restaurantes.", restaurantes.size());
+            Page<RestauranteDTO> restaurantes = restauranteService.getAllRestaurantes(pageable);
+            logger.info("Se han encontrado {} restaurantes en la página actual.", restaurantes.getTotalElements());
             return ResponseEntity.ok(restaurantes);
         } catch (Exception e) {
-            logger.error("Error al obtener los restaurantes: {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+            logger.error("Error al obtener la lista de restaurantes: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al obtener los restaurantes.");
         }
     }
+
+
 
     /**
      * Obtiene un restaurante por su ID.
      */
+    @Operation(summary = "Obtener un restaurante por ID", description = "Busca un restaurante específico en la base de datos.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Restaurante encontrado."),
+            @ApiResponse(responseCode = "404", description = "Restaurante no encontrado."),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor.")
+    })
     @GetMapping("/{id}")
     public ResponseEntity<?> getRestauranteById(@PathVariable Long id) {
         logger.info("Buscando restaurante con ID {}", id);
@@ -65,58 +96,46 @@ public class RestauranteController {
     /**
      * Crea un nuevo restaurante.
      */
+    @Operation(summary = "Crear un nuevo restaurante", description = "Permite a los usuarios registrar un restaurante.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "Restaurante creado exitosamente."),
+            @ApiResponse(responseCode = "400", description = "Datos de entrada inválidos."),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor.")
+    })
     @PostMapping
     public ResponseEntity<?> createRestaurante(@Valid @RequestBody RestauranteCreateDTO restauranteCreateDTO, Locale locale) {
-        logger.info("Creando nuevo restaurante...");
-        try {
-            RestauranteDTO createdRestaurante = restauranteService.createRestaurante(restauranteCreateDTO, locale);
-            logger.info("Restaurante creado con éxito.");
-            return ResponseEntity.status(HttpStatus.CREATED).body(createdRestaurante);
-        } catch (IllegalArgumentException e) {
-            logger.warn("Error al crear el restaurante: {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
-        } catch (Exception e) {
-            logger.error("Error inesperado al crear el restaurante: {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al crear el restaurante.");
-        }
+        RestauranteDTO createdRestaurante = restauranteService.createRestaurante(restauranteCreateDTO, locale);
+        return ResponseEntity.status(HttpStatus.CREATED).body(createdRestaurante);
     }
 
     /**
      * Actualiza un restaurante existente.
      */
+    @Operation(summary = "Actualizar un restaurante", description = "Modifica los datos de un restaurante existente.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Restaurante actualizado correctamente."),
+            @ApiResponse(responseCode = "400", description = "Datos de entrada inválidos."),
+            @ApiResponse(responseCode = "404", description = "Restaurante no encontrado."),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor.")
+    })
     @PutMapping("/{id}")
     public ResponseEntity<?> updateRestaurante(@PathVariable Long id, @Valid @RequestBody RestauranteCreateDTO restauranteCreateDTO, Locale locale) {
-        logger.info("Actualizando restaurante con ID {}", id);
-        try {
-            RestauranteDTO updatedRestaurante = restauranteService.updateRestaurante(id, restauranteCreateDTO, locale);
-            logger.info("Restaurante con ID {} actualizado con éxito.", id);
-            return ResponseEntity.ok(updatedRestaurante);
-        } catch (IllegalArgumentException e) {
-            logger.warn("Error al actualizar el restaurante con ID {}: {}", id, e.getMessage());
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
-        } catch (Exception e) {
-            logger.error("Error inesperado al actualizar el restaurante con ID {}: {}", id, e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al actualizar el restaurante.");
-        }
+        RestauranteDTO updatedRestaurante = restauranteService.updateRestaurante(id, restauranteCreateDTO, locale);
+        return ResponseEntity.ok(updatedRestaurante);
     }
 
     /**
      * Elimina un restaurante por su ID.
      */
+    @Operation(summary = "Eliminar un restaurante", description = "Elimina un restaurante por su ID.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Restaurante eliminado correctamente."),
+            @ApiResponse(responseCode = "404", description = "Restaurante no encontrado."),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor.")
+    })
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteRestaurante(@PathVariable Long id) {
-        logger.info("Eliminando restaurante con ID {}", id);
-        try {
-            restauranteService.deleteRestaurante(id);
-            logger.info("Restaurante con ID {} eliminado exitosamente.", id);
-            return ResponseEntity.ok("Restaurante eliminado con éxito.");
-        } catch (IllegalArgumentException e) {
-            logger.warn("Error al eliminar el restaurante con ID {}: {}", id, e.getMessage());
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
-        } catch (Exception e) {
-            logger.error("Error inesperado al eliminar el restaurante con ID {}: {}", id, e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al eliminar el restaurante.");
-        }
+        restauranteService.deleteRestaurante(id);
+        return ResponseEntity.ok("Restaurante eliminado con éxito.");
     }
-
 }

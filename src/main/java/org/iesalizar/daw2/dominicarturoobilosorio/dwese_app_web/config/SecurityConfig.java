@@ -36,19 +36,21 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .cors(withDefaults()) // Habilita CORS con la configuración predeterminada
-                .csrf(csrf -> csrf.disable()) // Desactiva CSRF, común en APIs REST
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // Sin sesiones
+                .cors(withDefaults()) // Habilita CORS
+                .csrf(csrf -> csrf.disable()) // Desactiva CSRF (para APIs REST)
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // Stateless
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/restaurantes", "/api/reservas").hasAnyRole("USER", "ADMIN") // Permite USER y ADMIN
-                        .requestMatchers("/api/admin/restaurantes", "/api/admin/reservas").hasAuthority("ROLE_ADMIN") // Solo ADMIN
                         .requestMatchers(
-                                "/api/v1/authenticate",
-                                "/api/v1/register"
-                        ).permitAll() // Endpoints públicos
-                        .anyRequest().authenticated() // Cualquier otra solicitud requiere autenticación
+                                "/api-docs/**",
+                                "/v3/api-docs/**",
+                                "/swagger-ui/**"
+                        ).permitAll()
+                        .requestMatchers("/api/v1/authenticate", "/api/v1/register").permitAll()
+                        .requestMatchers("/api/restaurantes", "/api/reservas").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers("/api/admin/restaurantes", "/api/admin/reservas").hasAuthority("ROLE_ADMIN")
+                        .anyRequest().authenticated()
                 )
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class); // Filtro JWT
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

@@ -9,12 +9,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.Locale;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 public class RestauranteService {
@@ -31,21 +30,22 @@ public class RestauranteService {
     private MessageSource messageSource;
 
     /**
-     * Obtiene todas las restaurantes y las convierte en una lista de RestauranteDTO.
+     * Obtiene todas los restaurantes con paginación y los convierte en una página de RestauranteDTO.
      *
-     * @return Lista de RestauranteDTO.
+     * @param pageable Objeto de paginación que define la página, el tamaño y la ordenación.
+     * @return Página de RestauranteDTO.
      */
-    public List<RestauranteDTO> getAllRestaurantes() {
-        logger.info("Solicitando todos los restaurantes...");
+    public Page<RestauranteDTO> getAllRestaurantes(Pageable pageable) {
+        logger.info("Solicitando todos los restaurantes con paginación: página {}, tamaño {}",
+                pageable.getPageNumber(), pageable.getPageSize());
+
         try {
-            List<Restaurante> restaurantes = restauranteRepository.findAll();
-            logger.info("Se han encontrado {} restaurantes.", restaurantes.size());
-            return restaurantes.stream()
-                    .map(restauranteMapper::toDTO)
-                    .collect(Collectors.toList());
+            Page<Restaurante> restaurantes = restauranteRepository.findAll(pageable);
+            logger.info("Se han encontrado {} restaurantes en la página actual.", restaurantes.getNumberOfElements());
+            return restaurantes.map(restauranteMapper::toDTO);
         } catch (Exception e) {
             logger.error("Error al obtener la lista de restaurantes: {}", e.getMessage());
-            throw e;
+            throw new RuntimeException("Error al obtener los restaurantes", e);
         }
     }
 

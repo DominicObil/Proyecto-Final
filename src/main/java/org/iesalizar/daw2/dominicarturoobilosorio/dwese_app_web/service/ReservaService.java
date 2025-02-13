@@ -11,12 +11,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.Locale;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 public class ReservaService {
@@ -36,26 +35,28 @@ public class ReservaService {
     private MessageSource messageSource;
 
     /**
-     * Obtiene todas las reservas.
+     * Obtiene todas las reservas con paginación y las convierte en una página de ReservaDTO.
      *
-     * @return Lista de ReservaDTO.
+     * @param pageable Objeto de paginación que define la página, el tamaño y la ordenación.
+     * @return Página de ReservaDTO.
      */
-    public List<ReservaDTO> getAllReservas() {
-        logger.info("Solicitando todas las reservas...");
+    public Page<ReservaDTO> getAllReservas(Pageable pageable) {
+        logger.info("Solicitando todas las reservas con paginación: página {}, tamaño {}",
+                pageable.getPageNumber(), pageable.getPageSize());
+
         try {
-            List<Reserva> reservas = reservaRepository.findAll();
-            logger.info("Se han encontrado {} reservas.", reservas.size());
-            return reservas.stream()
-                    .map(reservaMapper::toDTO)
-                    .collect(Collectors.toList());
+            Page<Reserva> reservas = reservaRepository.findAll(pageable);
+            logger.info("Se han encontrado {} reservas en la página actual.", reservas.getNumberOfElements());
+            return reservas.map(reservaMapper::toDTO);
         } catch (Exception e) {
             logger.error("Error al obtener la lista de reservas: {}", e.getMessage());
-            throw e;
+            throw new RuntimeException("Error al obtener las reservas", e);
         }
     }
 
+
     /**
-     * Obtiene una reserva por su ID.
+     * Obtiene una reserva por su ID y la convierte en un ReservaDTO.
      *
      * @param id Identificador único de la reserva.
      * @return ReservaDTO de la reserva encontrada.
