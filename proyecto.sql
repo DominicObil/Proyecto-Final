@@ -31,7 +31,7 @@ CREATE TABLE IF NOT EXISTS `horario` (
   CONSTRAINT `horario_ibfk_1` FOREIGN KEY (`restaurante_id`) REFERENCES `restaurante` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- La exportación de datos fue deseleccionada.
+
 
 -- Volcando estructura para tabla proyecto.lista_espera
 CREATE TABLE IF NOT EXISTS `lista_espera` (
@@ -50,7 +50,7 @@ CREATE TABLE IF NOT EXISTS `lista_espera` (
   CONSTRAINT `lista_espera_ibfk_2` FOREIGN KEY (`restaurante_id`) REFERENCES `restaurante` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- La exportación de datos fue deseleccionada.
+
 
 -- Volcando estructura para tabla proyecto.notificacion
 CREATE TABLE IF NOT EXISTS `notificacion` (
@@ -67,7 +67,7 @@ CREATE TABLE IF NOT EXISTS `notificacion` (
   CONSTRAINT `notificacion_ibfk_2` FOREIGN KEY (`reserva_id`) REFERENCES `reserva` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- La exportación de datos fue deseleccionada.
+
 
 -- Volcando estructura para tabla proyecto.reserva
 CREATE TABLE IF NOT EXISTS `reserva` (
@@ -88,7 +88,7 @@ CREATE TABLE IF NOT EXISTS `reserva` (
   CONSTRAINT `reserva_ibfk_2` FOREIGN KEY (`restaurante_id`) REFERENCES `restaurante` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- La exportación de datos fue deseleccionada.
+
 
 -- Volcando estructura para tabla proyecto.restaurante
 CREATE TABLE IF NOT EXISTS `restaurante` (
@@ -100,7 +100,7 @@ CREATE TABLE IF NOT EXISTS `restaurante` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- La exportación de datos fue deseleccionada.
+
 
 -- Volcando estructura para tabla proyecto.roles
 CREATE TABLE IF NOT EXISTS `roles` (
@@ -110,7 +110,7 @@ CREATE TABLE IF NOT EXISTS `roles` (
   UNIQUE KEY `name` (`name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- La exportación de datos fue deseleccionada.
+
 
 -- Volcando estructura para tabla proyecto.turno
 CREATE TABLE IF NOT EXISTS `turno` (
@@ -124,7 +124,7 @@ CREATE TABLE IF NOT EXISTS `turno` (
   CONSTRAINT `turno_ibfk_1` FOREIGN KEY (`restaurante_id`) REFERENCES `restaurante` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- La exportación de datos fue deseleccionada.
+
 
 -- Volcando estructura para tabla proyecto.users
 CREATE TABLE IF NOT EXISTS `users` (
@@ -142,7 +142,7 @@ CREATE TABLE IF NOT EXISTS `users` (
   UNIQUE KEY `username` (`username`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- La exportación de datos fue deseleccionada.
+
 
 -- Volcando estructura para tabla proyecto.user_roles
 CREATE TABLE IF NOT EXISTS `user_roles` (
@@ -154,7 +154,6 @@ CREATE TABLE IF NOT EXISTS `user_roles` (
   CONSTRAINT `user_roles_ibfk_2` FOREIGN KEY (`role_id`) REFERENCES `roles` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- La exportación de datos fue deseleccionada.
 
 /*!40103 SET TIME_ZONE=IFNULL(@OLD_TIME_ZONE, 'system') */;
 /*!40101 SET SQL_MODE=IFNULL(@OLD_SQL_MODE, '') */;
