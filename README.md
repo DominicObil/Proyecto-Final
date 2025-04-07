@@ -22,21 +22,26 @@ La idea de desarrollar esta aplicación surge directamente de mi experiencia per
 Permitirá a los clientes reservar mesas de manera online, evitando llamadas telefónicas y errores en la gestión de aforo. Los administradores del restaurante podrán gestionar reservas en tiempo real, establecer horarios disponibles, configurar límites de aforo y administrar cancelaciones. Además, se implementará un sistema de notificaciones para confirmar, recordar y cancelar reservas según sea necesario.
 
 Para clientes:
-- Registro e inicio de sesión con autenticación segura.
-- Búsqueda de disponibilidad de mesas.
-- Reserva de mesas según fecha y hora.
-- Cancelación y modificación de reservas.
-- Recibir notificaciones de confirmación y recordatorio.
-- Acceso al historial de reservas.
+RF01 - El sistema deberá permitir el registro de clientes con autenticación segura.
+RF02 - El sistema deberá permitir el inicio de sesión de clientes.
+RF03 - El sistema deberá permitir el cierre de sesión de clientes.
+RF04 - El sistema deberá permitir la búsqueda de disponibilidad de mesas según fecha y hora.
+RF05 - El sistema deberá permitir realizar reservas de mesas según la disponibilidad.
+RF06 - El sistema deberá permitir la cancelación de reservas realizadas.
+RF07 - El sistema deberá permitir la modificación de reservas realizadas.
+RF08 - El sistema deberá enviar notificaciones de confirmación de reserva.
+RF09 - El sistema deberá enviar notificaciones de recordatorio antes de la reserva.
+RF10 - El sistema deberá permitir a los clientes acceder a su historial de reservas.
 
 Para restaurantes:
-- Registro e inicio de sesión de administradores.
-- Panel de control para la gestión de reservas.
-- Configuración de horarios y disponibilidad.
-- Control de aforo y turnos de mesas.
-- Gestión de listas de espera.
-- Generación de reportes sobre ocupación
-
+RF11 - El sistema deberá permitir el registro de administradores de restaurantes.
+RF12 - El sistema deberá permitir el inicio de sesión de administradores.
+RF13 - El sistema deberá permitir el cierre de sesión de administradores.
+RF14 - El sistema deberá proporcionar un panel de control para la gestión de reservas.
+RF15 - El sistema deberá permitir la configuración de horarios y disponibilidad de mesas.
+RF16 - El sistema deberá permitir el control de aforo y turnos de mesas.
+RF17 - El sistema deberá permitir la gestión de listas de espera.
+RF18 - El sistema deberá generar reportes sobre la ocupación de mesas.
 
 # Stack tecnológico.
 
