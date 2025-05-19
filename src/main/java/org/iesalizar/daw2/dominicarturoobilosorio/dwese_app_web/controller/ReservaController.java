@@ -10,6 +10,11 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.iesalizar.daw2.dominicarturoobilosorio.dwese_app_web.dtos.ReservaCreateDTO;
 import org.iesalizar.daw2.dominicarturoobilosorio.dwese_app_web.dtos.ReservaDTO;
+import org.iesalizar.daw2.dominicarturoobilosorio.dwese_app_web.entities.Reserva;
+import org.iesalizar.daw2.dominicarturoobilosorio.dwese_app_web.entities.User;
+import org.iesalizar.daw2.dominicarturoobilosorio.dwese_app_web.mappers.ReservaMapper;
+import org.iesalizar.daw2.dominicarturoobilosorio.dwese_app_web.repositories.ReservaRepository;
+import org.iesalizar.daw2.dominicarturoobilosorio.dwese_app_web.repositories.UserRepository;
 import org.iesalizar.daw2.dominicarturoobilosorio.dwese_app_web.service.ReservaService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,8 +24,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 
@@ -37,6 +44,15 @@ public class ReservaController {
 
     @Autowired
     private ReservaService reservaService;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private ReservaRepository reservaRepository;
+
+    @Autowired
+    private ReservaMapper reservaMapper;
 
     /**
      * Obtiene todas las reservas con paginación.
@@ -135,10 +151,34 @@ public class ReservaController {
             @ApiResponse(responseCode = "404", description = "Reserva no encontrada."),
             @ApiResponse(responseCode = "500", description = "Error interno del servidor.")
     })
-    @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteReserva(@PathVariable Long id) {
-        logger.info("Eliminando reserva con ID {}", id);
-        reservaService.deleteReserva(id);
-        return ResponseEntity.ok("Reserva eliminada con éxito.");
+
+
+
+    @GetMapping("/mis")
+    public ResponseEntity<List<ReservaDTO>> getMisReservas(Authentication auth) {
+        String username = auth.getName();
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+        List<Reserva> reservas = reservaRepository.findByUser(user);
+        return ResponseEntity.ok(reservas.stream().map(reservaMapper::toDTO).toList());
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteReserva(@PathVariable Long id, Authentication auth) {
+        Reserva reserva = reservaRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Reserva no encontrada"));
+
+        String username = auth.getName();
+        if (!reserva.getUser().getUsername().equals(username)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("No autorizado");
+        }
+
+        reservaRepository.delete(reserva);
+        return ResponseEntity.noContent().build();
+    }
+
 }
+
+
+

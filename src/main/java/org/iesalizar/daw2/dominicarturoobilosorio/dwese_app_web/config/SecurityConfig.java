@@ -46,7 +46,7 @@ public class SecurityConfig {
                                 "/swagger-ui/**"
                         ).permitAll()
                         .requestMatchers("/api/v1/authenticate", "/api/v1/register").permitAll()
-                        .requestMatchers("/api/restaurantes", "/api/reservas").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers("/api/restaurantes", "/api/reservas").hasAnyRole("USER", "ADMIN" )
                         .requestMatchers("/api/admin/restaurantes", "/api/admin/reservas").hasAuthority("ROLE_ADMIN")
                         .anyRequest().authenticated()
                 )

@@ -4,9 +4,13 @@ import org.iesalizar.daw2.dominicarturoobilosorio.dwese_app_web.dtos.ReservaCrea
 import org.iesalizar.daw2.dominicarturoobilosorio.dwese_app_web.dtos.ReservaDTO;
 import org.iesalizar.daw2.dominicarturoobilosorio.dwese_app_web.entities.Reserva;
 import org.iesalizar.daw2.dominicarturoobilosorio.dwese_app_web.entities.Restaurante;
+import org.iesalizar.daw2.dominicarturoobilosorio.dwese_app_web.entities.TurnoMesa;
+import org.iesalizar.daw2.dominicarturoobilosorio.dwese_app_web.entities.User;
 import org.iesalizar.daw2.dominicarturoobilosorio.dwese_app_web.mappers.ReservaMapper;
 import org.iesalizar.daw2.dominicarturoobilosorio.dwese_app_web.repositories.ReservaRepository;
+import org.iesalizar.daw2.dominicarturoobilosorio.dwese_app_web.repositories.UserRepository;
 import org.iesalizar.daw2.dominicarturoobilosorio.dwese_app_web.repositories.RestauranteRepository;
+import org.iesalizar.daw2.dominicarturoobilosorio.dwese_app_web.repositories.TurnoMesaRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +31,10 @@ public class ReservaService {
 
     @Autowired
     private RestauranteRepository restauranteRepository;
+    @Autowired
+    private UserRepository userRepository;
+    @Autowired
+    private TurnoMesaRepository turnoMesaRepository;
 
     @Autowired
     private ReservaMapper reservaMapper;
@@ -84,6 +92,7 @@ public class ReservaService {
     public ReservaDTO createReserva(ReservaCreateDTO reservaCreateDTO, Locale locale) {
         logger.info("Creando una nueva reserva...");
 
+        // Buscar restaurante
         Restaurante restaurante = restauranteRepository.findById(reservaCreateDTO.getRestauranteId())
                 .orElseThrow(() -> {
                     String errorMessage = messageSource.getMessage("msg.reserva.restaurante.notFound", null, locale);
@@ -91,11 +100,36 @@ public class ReservaService {
                     return new IllegalArgumentException(errorMessage);
                 });
 
-        Reserva reserva = reservaMapper.toEntity(reservaCreateDTO);
-        reserva.setRestaurante(restaurante);
+        // Buscar usuario
+        User user = userRepository.findById(reservaCreateDTO.getUserId())
+                .orElseThrow(() -> {
+                    String errorMessage = messageSource.getMessage("msg.reserva.user.notFound", null, locale);
+                    logger.warn("Error al crear reserva: {}", errorMessage);
+                    return new IllegalArgumentException(errorMessage);
+                });
 
+        // Buscar turno
+        // Buscar turno y validar que pertenezca al restaurante
+        TurnoMesa turno = turnoMesaRepository.findById(reservaCreateDTO.getTurnoId())
+                .filter(t -> t.getRestaurante().getId().equals(restaurante.getId()))
+                .orElseThrow(() -> {
+                    String errorMessage = messageSource.getMessage("msg.reserva.turno.invalid", null, locale);
+                    logger.warn("Error al crear reserva: {}", errorMessage);
+                    return new IllegalArgumentException(errorMessage);
+                });
+
+
+        // Mapear DTO a entidad con restaurante y user
+        Reserva reserva = reservaMapper.toEntity(reservaCreateDTO, user, restaurante, turno);
+
+        // Asignar turno
+        reserva.setTurno(turno);
+
+        // Guardar reserva
         Reserva savedReserva = reservaRepository.save(reserva);
         logger.info("Reserva creada exitosamente con ID {}", savedReserva.getId());
+
+        // Retornar DTO de salida
         return reservaMapper.toDTO(savedReserva);
     }
 
@@ -111,12 +145,14 @@ public class ReservaService {
     public ReservaDTO updateReserva(Long id, ReservaCreateDTO reservaCreateDTO, Locale locale) {
         logger.info("Actualizando reserva con ID {}", id);
 
+        // Buscar la reserva existente
         Reserva existingReserva = reservaRepository.findById(id)
                 .orElseThrow(() -> {
                     logger.warn("No se encontró la reserva con ID {}", id);
                     return new IllegalArgumentException("La reserva no existe.");
                 });
 
+        // Buscar el restaurante
         Restaurante restaurante = restauranteRepository.findById(reservaCreateDTO.getRestauranteId())
                 .orElseThrow(() -> {
                     String errorMessage = messageSource.getMessage("msg.reserva.restaurante.notFound", null, locale);
@@ -124,16 +160,39 @@ public class ReservaService {
                     return new IllegalArgumentException(errorMessage);
                 });
 
+        // Buscar el usuario (si permites que se cambie)
+        User user = userRepository.findById(reservaCreateDTO.getUserId())
+                .orElseThrow(() -> {
+                    String errorMessage = messageSource.getMessage("msg.reserva.user.notFound", null, locale);
+                    logger.warn("Error al actualizar reserva: {}", errorMessage);
+                    return new IllegalArgumentException(errorMessage);
+                });
+
+        // Buscar el turno y validar que sea del restaurante
+        TurnoMesa turno = turnoMesaRepository.findById(reservaCreateDTO.getTurnoId())
+                .filter(t -> t.getRestaurante().getId().equals(restaurante.getId()))
+                .orElseThrow(() -> {
+                    String errorMessage = messageSource.getMessage("msg.reserva.turno.invalid", null, locale);
+                    logger.warn("Error al actualizar reserva: {}", errorMessage);
+                    return new IllegalArgumentException(errorMessage);
+                });
+
+        // Actualizar campos
         existingReserva.setFechaReserva(reservaCreateDTO.getFechaReserva());
         existingReserva.setHoraReserva(reservaCreateDTO.getHoraReserva());
         existingReserva.setNumeroPersonas(reservaCreateDTO.getNumeroPersonas());
         existingReserva.setComentarios(reservaCreateDTO.getComentarios());
         existingReserva.setRestaurante(restaurante);
+        existingReserva.setUser(user);
+        existingReserva.setTurno(turno);
 
+        // Guardar y devolver
         Reserva updatedReserva = reservaRepository.save(existingReserva);
         logger.info("Reserva con ID {} actualizada exitosamente.", id);
+
         return reservaMapper.toDTO(updatedReserva);
     }
+
 
     /**
      * Elimina una reserva por su ID.

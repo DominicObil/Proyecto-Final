@@ -7,18 +7,17 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+
 @Data
-@NoArgsConstructor
 @AllArgsConstructor
-public class ReservaDTO {
+@NoArgsConstructor
+public class ListaEsperaDTO {
     private Long id;
-    private LocalDate fechaReserva;
-    private LocalTime horaReserva;
-    private Integer numeroPersonas;
-    private String comentarios;
-    private Long restauranteId;
     private Long userId;
-    private Long turnoId; // 👉 Añadido
+    private Long restauranteId;
+    private LocalDate fecha;
+    private LocalTime hora;
+    private Integer numeroPersonas;
     private String estado;
     private LocalDateTime fechaCreacion;
 }
