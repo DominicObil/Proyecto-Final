@@ -22,7 +22,7 @@ import static org.springframework.security.config.Customizer.withDefaults;
 
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity(prePostEnabled = true) // Activa la seguridad basada en métodos
+@EnableMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
 
     private static final Logger logger = LoggerFactory.getLogger(SecurityConfig.class);
@@ -36,18 +36,25 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .cors(withDefaults()) // Habilita CORS
-                .csrf(csrf -> csrf.disable()) // Desactiva CSRF (para APIs REST)
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // Stateless
+                .cors(withDefaults())
+                .csrf(csrf -> csrf.disable())
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-                                "/api-docs/**",
-                                "/v3/api-docs/**",
-                                "/swagger-ui/**"
+                                "/api-docs",
+                                "/api-docs.yaml",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html",
+                                "/api/v1/authenticate",
+                                "/api/v1/register"
                         ).permitAll()
+
+
+                        // *** Tus paths públicos de auth ***
                         .requestMatchers("/api/v1/authenticate", "/api/v1/register").permitAll()
-                        .requestMatchers("/api/restaurantes", "/api/reservas").hasAnyRole("USER", "ADMIN" )
-                        .requestMatchers("/api/admin/restaurantes", "/api/admin/reservas").hasAuthority("ROLE_ADMIN")
+                        // *** Paths protegidos por roles ***
+                        .requestMatchers("/api/restaurantes", "/api/reservas").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers("/api/admin/restaurantes", "/api/admin/reservas").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

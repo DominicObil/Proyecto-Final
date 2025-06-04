@@ -40,4 +40,9 @@ public class RestauranteCreateDTO {
     @Positive(message = "{msg.restaurante.capacidad.positive}")
     @Schema(description = "Capacidad máxima de personas en el restaurante.", example = "50")
     private Integer capacidad;
+
+    // 👇 NUEVO: Id del dueño del restaurante
+    @NotNull(message = "{msg.restaurante.owner.notNull}")
+    @Schema(description = "ID del usuario que es el dueño del restaurante.", example = "42")
+    private Long ownerId;
 }

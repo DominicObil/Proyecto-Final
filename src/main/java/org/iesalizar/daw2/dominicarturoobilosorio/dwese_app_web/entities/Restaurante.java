@@ -55,10 +55,17 @@ public class Restaurante {
     @OneToMany(mappedBy = "restaurante", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<ListaEspera> listaEspera;
 
+    // imports...
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "owner_id") // Puedes cambiar el nombre si quieres
+    private User owner;
+
+
     public Restaurante(String nombre, String direccion, String telefono, Integer capacidad) {
         this.nombre = nombre;
         this.direccion = direccion;
         this.telefono = telefono;
         this.capacidad = capacidad;
+
     }
 }

@@ -19,6 +19,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Locale;
 
 @Service
@@ -81,15 +82,22 @@ public class ReservaService {
         return reservaMapper.toDTO(reserva);
     }
 
+    public List<ReservaDTO> getReservasPorRestaurante(Long restauranteId) {
+        List<Reserva> reservas = reservaRepository.findByRestauranteId(restauranteId);
+        return reservas.stream().map(reservaMapper::toDTO).toList();
+    }
+
+
     /**
      * Crea una nueva reserva en la base de datos.
      *
-     * @param reservaCreateDTO DTO con los datos de la reserva a crear.
+     * @param reservaCreateDTO DTO con los datos de la reserva a crear (sin userId).
      * @param locale Idioma para los mensajes de error.
+     * @param user El usuario autenticado (del token).
      * @return DTO de la reserva creada.
      * @throws IllegalArgumentException Si el restaurante no existe.
      */
-    public ReservaDTO createReserva(ReservaCreateDTO reservaCreateDTO, Locale locale) {
+    public ReservaDTO createReserva(ReservaCreateDTO reservaCreateDTO, Locale locale, User user) {
         logger.info("Creando una nueva reserva...");
 
         // Buscar restaurante
@@ -100,15 +108,6 @@ public class ReservaService {
                     return new IllegalArgumentException(errorMessage);
                 });
 
-        // Buscar usuario
-        User user = userRepository.findById(reservaCreateDTO.getUserId())
-                .orElseThrow(() -> {
-                    String errorMessage = messageSource.getMessage("msg.reserva.user.notFound", null, locale);
-                    logger.warn("Error al crear reserva: {}", errorMessage);
-                    return new IllegalArgumentException(errorMessage);
-                });
-
-        // Buscar turno
         // Buscar turno y validar que pertenezca al restaurante
         TurnoMesa turno = turnoMesaRepository.findById(reservaCreateDTO.getTurnoId())
                 .filter(t -> t.getRestaurante().getId().equals(restaurante.getId()))
@@ -118,12 +117,8 @@ public class ReservaService {
                     return new IllegalArgumentException(errorMessage);
                 });
 
-
         // Mapear DTO a entidad con restaurante y user
         Reserva reserva = reservaMapper.toEntity(reservaCreateDTO, user, restaurante, turno);
-
-        // Asignar turno
-        reserva.setTurno(turno);
 
         // Guardar reserva
         Reserva savedReserva = reservaRepository.save(reserva);
@@ -137,12 +132,13 @@ public class ReservaService {
      * Actualiza una reserva existente en la base de datos.
      *
      * @param id Identificador de la reserva a actualizar.
-     * @param reservaCreateDTO DTO con los nuevos datos de la reserva.
+     * @param reservaCreateDTO DTO con los nuevos datos de la reserva (sin userId).
      * @param locale Idioma para los mensajes de error.
+     * @param user El usuario autenticado (del token).
      * @return DTO de la reserva actualizada.
      * @throws IllegalArgumentException Si la reserva no existe o el restaurante no es válido.
      */
-    public ReservaDTO updateReserva(Long id, ReservaCreateDTO reservaCreateDTO, Locale locale) {
+    public ReservaDTO updateReserva(Long id, ReservaCreateDTO reservaCreateDTO, Locale locale, User user) {
         logger.info("Actualizando reserva con ID {}", id);
 
         // Buscar la reserva existente
@@ -156,14 +152,6 @@ public class ReservaService {
         Restaurante restaurante = restauranteRepository.findById(reservaCreateDTO.getRestauranteId())
                 .orElseThrow(() -> {
                     String errorMessage = messageSource.getMessage("msg.reserva.restaurante.notFound", null, locale);
-                    logger.warn("Error al actualizar reserva: {}", errorMessage);
-                    return new IllegalArgumentException(errorMessage);
-                });
-
-        // Buscar el usuario (si permites que se cambie)
-        User user = userRepository.findById(reservaCreateDTO.getUserId())
-                .orElseThrow(() -> {
-                    String errorMessage = messageSource.getMessage("msg.reserva.user.notFound", null, locale);
                     logger.warn("Error al actualizar reserva: {}", errorMessage);
                     return new IllegalArgumentException(errorMessage);
                 });
@@ -183,7 +171,7 @@ public class ReservaService {
         existingReserva.setNumeroPersonas(reservaCreateDTO.getNumeroPersonas());
         existingReserva.setComentarios(reservaCreateDTO.getComentarios());
         existingReserva.setRestaurante(restaurante);
-        existingReserva.setUser(user);
+        existingReserva.setUser(user); // Usa el usuario autenticado recibido
         existingReserva.setTurno(turno);
 
         // Guardar y devolver
@@ -192,7 +180,6 @@ public class ReservaService {
 
         return reservaMapper.toDTO(updatedReserva);
     }
-
 
     /**
      * Elimina una reserva por su ID.

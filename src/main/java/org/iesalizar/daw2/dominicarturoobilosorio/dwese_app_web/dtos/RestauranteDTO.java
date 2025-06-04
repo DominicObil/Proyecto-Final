@@ -13,4 +13,5 @@ public class RestauranteDTO {
     private String direccion;
     private String telefono;
     private Integer capacidad;
+    private Long ownerId; // <-- Aquí
 }

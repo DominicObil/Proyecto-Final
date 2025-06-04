@@ -3,8 +3,10 @@ package org.iesalizar.daw2.dominicarturoobilosorio.dwese_app_web.service;
 import org.iesalizar.daw2.dominicarturoobilosorio.dwese_app_web.dtos.RestauranteCreateDTO;
 import org.iesalizar.daw2.dominicarturoobilosorio.dwese_app_web.dtos.RestauranteDTO;
 import org.iesalizar.daw2.dominicarturoobilosorio.dwese_app_web.entities.Restaurante;
+import org.iesalizar.daw2.dominicarturoobilosorio.dwese_app_web.entities.User;
 import org.iesalizar.daw2.dominicarturoobilosorio.dwese_app_web.mappers.RestauranteMapper;
 import org.iesalizar.daw2.dominicarturoobilosorio.dwese_app_web.repositories.RestauranteRepository;
+import org.iesalizar.daw2.dominicarturoobilosorio.dwese_app_web.repositories.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +15,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Locale;
 
 @Service
@@ -22,6 +25,8 @@ public class RestauranteService {
 
     @Autowired
     private RestauranteRepository restauranteRepository;
+    @Autowired
+    private UserRepository userRepository;
 
     @Autowired
     private RestauranteMapper restauranteMapper;
@@ -48,6 +53,14 @@ public class RestauranteService {
             throw new RuntimeException("Error al obtener los restaurantes", e);
         }
     }
+
+    public List<RestauranteDTO> getMisRestaurantes(User owner) {
+        List<org.iesalizar.daw2.dominicarturoobilosorio.dwese_app_web.entities.Restaurante> restaurantes = restauranteRepository.findByOwner(owner);
+        return restaurantes.stream()
+                .map(restauranteMapper::toDTO)
+                .toList();
+
+}
 
     /**
      * Obtiene un restaurante por su ID y lo convierte en un RestauranteDTO.
@@ -77,17 +90,34 @@ public class RestauranteService {
      */
     public RestauranteDTO createRestaurante(RestauranteCreateDTO restauranteCreateDTO, Locale locale) {
         logger.info("Creando un nuevo restaurante con nombre {}", restauranteCreateDTO.getNombre());
+
+        // Validar que NO exista un restaurante con ese nombre
         if (restauranteRepository.existsByNombre(restauranteCreateDTO.getNombre())) {
             String errorMessage = messageSource.getMessage("msg.restaurant-controller.insert.nameExist", null, locale);
             logger.warn("Error al crear restaurante: {}", errorMessage);
             throw new IllegalArgumentException(errorMessage);
         }
 
-        Restaurante restaurante = restauranteMapper.toEntity(restauranteCreateDTO);
+        // Buscar el propietario/owner
+        User owner = userRepository.findById(restauranteCreateDTO.getOwnerId())
+                .orElseThrow(() -> {
+                    String msg = messageSource.getMessage("msg.restaurant-controller.insert.ownerNotFound", null, locale);
+                    logger.warn("Error al crear restaurante: {}", msg);
+                    return new IllegalArgumentException(msg);
+                });
+
+        // Crear la entidad Restaurante usando el mapper actualizado
+        Restaurante restaurante = restauranteMapper.toEntity(restauranteCreateDTO, owner);
+
+        // Guardar en la base de datos
         Restaurante savedRestaurante = restauranteRepository.save(restaurante);
+
         logger.info("Restaurante creado exitosamente con ID {}", savedRestaurante.getId());
+
+        // Devolver el DTO
         return restauranteMapper.toDTO(savedRestaurante);
     }
+
 
     /**
      * Actualiza un restaurante existente en la base de datos.

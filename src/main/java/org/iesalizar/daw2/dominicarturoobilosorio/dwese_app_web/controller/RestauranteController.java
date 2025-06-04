@@ -7,10 +7,13 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.iesalizar.daw2.dominicarturoobilosorio.dwese_app_web.dtos.RestauranteCreateDTO;
 import org.iesalizar.daw2.dominicarturoobilosorio.dwese_app_web.dtos.RestauranteDTO;
+import org.iesalizar.daw2.dominicarturoobilosorio.dwese_app_web.entities.User;
 import org.iesalizar.daw2.dominicarturoobilosorio.dwese_app_web.service.RestauranteService;
+import org.iesalizar.daw2.dominicarturoobilosorio.dwese_app_web.utils.JwtUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +24,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 
@@ -36,6 +40,13 @@ public class RestauranteController {
 
     @Autowired
     private RestauranteService restauranteService;
+
+    @Autowired
+    private JwtUtil jwtUtil;
+
+    @Autowired
+    private org.iesalizar.daw2.dominicarturoobilosorio.dwese_app_web.repositories.UserRepository userRepository;
+
 
     /**
      * Obtiene la lista de todos los restaurantes con paginación.
@@ -92,6 +103,17 @@ public class RestauranteController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al buscar el restaurante.");
         }
     }
+
+    @GetMapping("/mis-restaurantes")
+    public ResponseEntity<?> getMisRestaurantes(HttpServletRequest request) {
+        String username = jwtUtil.extractUsernameFromRequest(request);
+        User owner = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+        List<RestauranteDTO> misRestaurantes = restauranteService.getMisRestaurantes(owner);
+        return ResponseEntity.ok(misRestaurantes);
+    }
+
 
     /**
      * Crea un nuevo restaurante.

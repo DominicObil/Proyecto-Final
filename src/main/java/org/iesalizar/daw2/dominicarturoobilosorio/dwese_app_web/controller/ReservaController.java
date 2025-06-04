@@ -54,6 +54,9 @@ public class ReservaController {
     @Autowired
     private ReservaMapper reservaMapper;
 
+
+
+
     /**
      * Obtiene todas las reservas con paginación.
      */
@@ -109,6 +112,17 @@ public class ReservaController {
         }
     }
 
+    @GetMapping("/restaurante/{restauranteId}")
+    public ResponseEntity<?> getReservasPorRestaurante(@PathVariable Long restauranteId) {
+        try {
+            List<ReservaDTO> reservas = reservaService.getReservasPorRestaurante(restauranteId);
+            return ResponseEntity.ok(reservas);
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Error al obtener reservas para el restaurante");
+        }
+    }
+
+
     /**
      * Crea una nueva reserva.
      */
@@ -119,11 +133,24 @@ public class ReservaController {
             @ApiResponse(responseCode = "500", description = "Error interno del servidor.")
     })
     @PostMapping
-    public ResponseEntity<?> createReserva(@Valid @RequestBody ReservaCreateDTO reservaCreateDTO, Locale locale) {
+    public ResponseEntity<?> createReserva(
+            @Valid @RequestBody ReservaCreateDTO reservaCreateDTO,
+            Locale locale,
+            Authentication auth // 👈 Añadido
+    ) {
         logger.info("Creando nueva reserva...");
-        ReservaDTO createdReserva = reservaService.createReserva(reservaCreateDTO, locale);
+
+        // Obtener el usuario autenticado del token JWT
+        String username = auth.getName();
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+        // Pasa el usuario directamente al service
+        ReservaDTO createdReserva = reservaService.createReserva(reservaCreateDTO, locale, user);
+
         return ResponseEntity.status(HttpStatus.CREATED).body(createdReserva);
     }
+
 
     /**
      * Actualiza una reserva existente.
@@ -136,9 +163,17 @@ public class ReservaController {
             @ApiResponse(responseCode = "500", description = "Error interno del servidor.")
     })
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateReserva(@PathVariable Long id, @Valid @RequestBody ReservaCreateDTO reservaCreateDTO, Locale locale) {
-        logger.info("Actualizando reserva con ID {}", id);
-        ReservaDTO updatedReserva = reservaService.updateReserva(id, reservaCreateDTO, locale);
+    public ResponseEntity<?> updateReserva(
+            @PathVariable Long id,
+            @Valid @RequestBody ReservaCreateDTO reservaCreateDTO,
+            Locale locale,
+            Authentication auth // 👈 Nuevo parámetro
+    ) {
+        String username = auth.getName();
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+        ReservaDTO updatedReserva = reservaService.updateReserva(id, reservaCreateDTO, locale, user); // 👈 ahora con user
         return ResponseEntity.ok(updatedReserva);
     }
 
@@ -163,20 +198,25 @@ public class ReservaController {
         List<Reserva> reservas = reservaRepository.findByUser(user);
         return ResponseEntity.ok(reservas.stream().map(reservaMapper::toDTO).toList());
     }
-
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteReserva(@PathVariable Long id, Authentication auth) {
         Reserva reserva = reservaRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Reserva no encontrada"));
 
         String username = auth.getName();
-        if (!reserva.getUser().getUsername().equals(username)) {
+
+        // Si el usuario es quien hizo la reserva, o es owner del restaurante
+        boolean esCreador = reserva.getUser().getUsername().equals(username);
+        boolean esOwner = reserva.getRestaurante().getOwner().getUsername().equals(username);
+
+        if (!esCreador && !esOwner) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("No autorizado");
         }
 
         reservaRepository.delete(reserva);
         return ResponseEntity.noContent().build();
     }
+
 
 }
 

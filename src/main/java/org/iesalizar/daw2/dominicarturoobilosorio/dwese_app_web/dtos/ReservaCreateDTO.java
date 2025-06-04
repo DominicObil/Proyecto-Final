@@ -47,9 +47,7 @@ public class ReservaCreateDTO {
      * - Ejemplo: "5".
      * </p>
      */
-    @NotNull(message = "{msg.reserva.user.notNull}")
-    @Schema(description = "ID del cliente que realiza la reserva.", example = "5")
-    private Long userId;
+
 
     @NotNull(message = "{msg.reserva.turno.notNull}")
     @Schema(description = "ID del turno en el que se desea reservar.", example = "3")
