@@ -3,6 +3,8 @@ package org.iesalizar.daw2.dominicarturoobilosorio.dwese_app_web.config;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
 
 import java.io.FileInputStream;
 import java.security.KeyPair;
@@ -22,14 +24,16 @@ public class KeyConfig {
     @Value("${jwt.keystore.alias}")
     private String keystoreAlias;
 
-    @Bean
-    public KeyPair jwtKeyPair() throws Exception{
-        KeyStore keyStore = KeyStore.getInstance("JKS");
-        try (FileInputStream fis = new FileInputStream(keystorePath)){
-            keyStore.load(fis, keystorePassword.toCharArray());
-        }
-        PrivateKey privateKey = (PrivateKey) keyStore.getKey(keystoreAlias,keystorePassword.toCharArray());
-        PublicKey publicKey = keyStore.getCertificate(keystoreAlias).getPublicKey();
-        return new KeyPair(publicKey,privateKey);
+@Bean
+public KeyPair jwtKeyPair() throws Exception {
+    KeyStore keyStore = KeyStore.getInstance("JKS");
+    // Quita el prefijo "classpath:" si lo tienes
+    String resourcePath = keystorePath.replaceFirst("^classpath:", "");
+    Resource resource = new ClassPathResource(resourcePath.trim());
+    try (InputStream is = resource.getInputStream()) {
+        keyStore.load(is, keystorePassword.toCharArray());
     }
+    PrivateKey privateKey = (PrivateKey) keyStore.getKey(keystoreAlias, keystorePassword.toCharArray());
+    PublicKey publicKey = keyStore.getCertificate(keystoreAlias).getPublicKey();
+    return new KeyPair(publicKey, privateKey);
 }
