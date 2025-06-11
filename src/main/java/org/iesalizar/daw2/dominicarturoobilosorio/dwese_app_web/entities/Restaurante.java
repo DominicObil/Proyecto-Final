@@ -32,7 +32,6 @@ public class Restaurante {
     private String direccion;
 
     @NotEmpty(message = "{msg.restaurante.telefono.notEmpty}")
-    @Pattern(regexp = "^(\\+\\d{1,3}[- ]?)?\\d{10}$", message = "{msg.restaurante.telefono.invalid}")
     @Column(name = "telefono", nullable = false, length = 15)
     private String telefono;
 

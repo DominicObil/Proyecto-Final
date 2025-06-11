@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.iesalizar.daw2.dominicarturoobilosorio.dwese_app_web.dtos.SolicitudRestauranteDTO;
-import org.iesalizar.daw2.dominicarturoobilosorio.dwese_app_web.entities.SolicitudRestaurante;
+import org.iesalizar.daw2.dominicarturoobilosorio.dwese_app_web.dtos.SolicitudRestauranteResponseDTO;
 import org.iesalizar.daw2.dominicarturoobilosorio.dwese_app_web.entities.Restaurante;
 import org.iesalizar.daw2.dominicarturoobilosorio.dwese_app_web.entities.User;
 import org.iesalizar.daw2.dominicarturoobilosorio.dwese_app_web.service.SolicitudRestauranteService;
@@ -14,7 +14,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -23,8 +22,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/solicitudes-restaurante")
@@ -37,10 +34,7 @@ public class SolicitudRestauranteController {
     @Autowired
     private UserRepository userRepository;
 
-
-
     // Endpoint para que el usuario cree una solicitud
-
     @PostMapping
     public ResponseEntity<?> crearSolicitud(@RequestBody SolicitudRestauranteDTO dto) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -50,7 +44,8 @@ public class SolicitudRestauranteController {
         solicitudService.crearSolicitud(dto, owner);
         return ResponseEntity.ok("Solicitud enviada correctamente");
     }
-    // Endpoint para que el admin vea todas las solicitudes
+
+    // Endpoint para que el admin vea todas las solicitudes (usando el DTO paginado)
     @Operation(
             summary = "Obtener todas las solicitudes de restaurante",
             description = "Devuelve una lista paginada de todas las solicitudes de restaurante registradas."
@@ -65,7 +60,7 @@ public class SolicitudRestauranteController {
         logger.info("Solicitando todas las solicitudes de restaurante con paginación: página {}, tamaño {}",
                 pageable.getPageNumber(), pageable.getPageSize());
         try {
-            Page<SolicitudRestaurante> solicitudes = solicitudService.listarTodas(pageable);
+            Page<SolicitudRestauranteResponseDTO> solicitudes = solicitudService.listarTodas(pageable);
             logger.info("Se han encontrado {} solicitudes en la página actual.", solicitudes.getTotalElements());
             return ResponseEntity.ok(solicitudes);
         } catch (Exception e) {

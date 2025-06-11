@@ -41,12 +41,12 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-                                "/api-docs",
-                                "/api-docs.yaml",
-                                "/swagger-ui/**",
-                                "/swagger-ui.html",
-                                "/api/v1/authenticate",
-                                "/api/v1/register"
+                                "/v3/api-docs/**",           // Especificación OpenAPI (JSON)
+                                "/swagger-ui/**",            // Interfaz de Swagger UI
+                                "/swagger-ui.html",          // Redirección (opcional)
+                                "/webjars/**",               // Recursos de librerías (JS/CSS)
+                                "/swagger-resources/**",
+                                "/swagger-ui/index.html"// Necesario para compatibilidad
                         ).permitAll()
 
 
