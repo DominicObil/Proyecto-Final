@@ -79,4 +79,10 @@ public class SolicitudRestauranteService {
         dto.setFechaSolicitud(entity.getFechaSolicitud());
         return dto;
     }
+    public void rechazarSolicitud(Long id) {
+        SolicitudRestaurante solicitud = repo.findById(id)
+                .orElseThrow(() -> new RuntimeException("No se encontró la solicitud"));
+        repo.delete(solicitud);
+    }
+
 }

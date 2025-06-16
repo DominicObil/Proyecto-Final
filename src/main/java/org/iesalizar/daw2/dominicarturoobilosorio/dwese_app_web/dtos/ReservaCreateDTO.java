@@ -49,7 +49,6 @@ public class ReservaCreateDTO {
      */
 
 
-    @NotNull(message = "{msg.reserva.turno.notNull}")
     @Schema(description = "ID del turno en el que se desea reservar.", example = "3")
     private Long turnoId;
 

@@ -18,7 +18,7 @@ public class ReservaDTO {
     private String comentarios;
     private Long restauranteId;
     private Long userId;
-    private Long turnoId; // 👉 Añadido
+    private Long turnoId;
     private String estado;
     private LocalDateTime fechaCreacion;
 }

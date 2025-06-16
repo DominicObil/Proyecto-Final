@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.iesalizar.daw2.dominicarturoobilosorio.dwese_app_web.dtos.EstadoReservaUpdateDTO;
 import org.iesalizar.daw2.dominicarturoobilosorio.dwese_app_web.dtos.ReservaCreateDTO;
 import org.iesalizar.daw2.dominicarturoobilosorio.dwese_app_web.dtos.ReservaDTO;
 import org.iesalizar.daw2.dominicarturoobilosorio.dwese_app_web.entities.Reserva;
@@ -27,6 +28,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
@@ -177,6 +179,21 @@ public class ReservaController {
         return ResponseEntity.ok(updatedReserva);
     }
 
+    @GetMapping("/restaurante/{restauranteId}/fecha/{fecha}")
+    public ResponseEntity<?> getReservasPorRestauranteYFecha(
+            @PathVariable Long restauranteId,
+            @PathVariable String fecha
+    ) {
+        try {
+            LocalDate fechaLocalDate = LocalDate.parse(fecha); // formato: yyyy-MM-dd
+            List<ReservaDTO> reservas = reservaService.getReservasPorRestauranteYFecha(restauranteId, fechaLocalDate);
+            return ResponseEntity.ok(reservas);
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Error al obtener reservas por fecha");
+        }
+    }
+
+
     /**
      * Elimina una reserva por su ID.
      */
@@ -215,6 +232,29 @@ public class ReservaController {
 
         reservaRepository.delete(reserva);
         return ResponseEntity.noContent().build();
+    }
+
+
+    @PatchMapping("/{id}/estado")
+    public ResponseEntity<?> actualizarEstadoReserva(
+            @PathVariable Long id,
+            @RequestBody EstadoReservaUpdateDTO estadoDTO,
+            Authentication auth
+    ) {
+        Reserva reserva = reservaRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Reserva no encontrada"));
+
+        String username = auth.getName();
+        boolean esCreador = reserva.getUser().getUsername().equals(username);
+        boolean esOwner = reserva.getRestaurante().getOwner().getUsername().equals(username);
+
+        if (!esCreador && !esOwner) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("No autorizado");
+        }
+
+        reserva.setEstado(estadoDTO.getEstado());
+        reservaRepository.save(reserva);
+        return ResponseEntity.ok().body("Estado actualizado correctamente");
     }
 
 

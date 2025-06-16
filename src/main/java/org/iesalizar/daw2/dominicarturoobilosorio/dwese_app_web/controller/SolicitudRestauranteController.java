@@ -6,7 +6,9 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.iesalizar.daw2.dominicarturoobilosorio.dwese_app_web.dtos.SolicitudRestauranteDTO;
 import org.iesalizar.daw2.dominicarturoobilosorio.dwese_app_web.dtos.SolicitudRestauranteResponseDTO;
 import org.iesalizar.daw2.dominicarturoobilosorio.dwese_app_web.entities.Restaurante;
+import org.iesalizar.daw2.dominicarturoobilosorio.dwese_app_web.entities.Role;
 import org.iesalizar.daw2.dominicarturoobilosorio.dwese_app_web.entities.User;
+import org.iesalizar.daw2.dominicarturoobilosorio.dwese_app_web.repositories.RoleRepository;
 import org.iesalizar.daw2.dominicarturoobilosorio.dwese_app_web.service.SolicitudRestauranteService;
 import org.iesalizar.daw2.dominicarturoobilosorio.dwese_app_web.repositories.UserRepository;
 
@@ -33,6 +35,8 @@ public class SolicitudRestauranteController {
     private SolicitudRestauranteService solicitudService;
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private RoleRepository roleRepository;
 
     // Endpoint para que el usuario cree una solicitud
     @PostMapping
@@ -73,6 +77,29 @@ public class SolicitudRestauranteController {
     @PostMapping("/{id}/aprobar")
     public ResponseEntity<?> aprobarSolicitud(@PathVariable Long id) {
         Restaurante restaurante = solicitudService.aprobarSolicitud(id);
+
+        // Obtener el usuario que hizo la solicitud
+        User user = restaurante.getOwner(); // O como obtengas el usuario solicitante
+
+        // Añadir el rol OWNER si no lo tiene
+        Role ownerRole = roleRepository.findByName("ROLE_OWNER")
+                .orElseThrow(() -> new RuntimeException("No existe el rol OWNER"));
+        if (!user.getRoles().contains(ownerRole)) {
+            user.getRoles().add(ownerRole);
+            userRepository.save(user);
+        }
+
         return ResponseEntity.ok("Restaurante creado correctamente con ID: " + restaurante.getId());
     }
+
+    @DeleteMapping("/{id}/rechazar")
+    public ResponseEntity<?> rechazarSolicitud(@PathVariable Long id) {
+        try {
+            solicitudService.rechazarSolicitud(id); // Deberás implementar este método
+            return ResponseEntity.ok("Solicitud rechazada correctamente");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No se encontró la solicitud");
+        }
+    }
+
 }

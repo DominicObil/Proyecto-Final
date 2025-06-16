@@ -64,7 +64,7 @@ public class Reserva {
 
 
     }
-    @ManyToOne
+    @ManyToOne(optional = true)
     @JoinColumn(name = "turno_id")
     private TurnoMesa turno;
 
