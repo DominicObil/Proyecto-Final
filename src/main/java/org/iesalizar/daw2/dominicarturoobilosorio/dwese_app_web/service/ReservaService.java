@@ -45,6 +45,7 @@ public class ReservaService {
     @Autowired
     private MessageSource messageSource;
 
+
     public Page<ReservaDTO> getAllReservas(Pageable pageable) {
         logger.info("Solicitando todas las reservas con paginación: página {}, tamaño {}", pageable.getPageNumber(), pageable.getPageSize());
         try {
@@ -97,8 +98,10 @@ public class ReservaService {
         Reserva savedReserva = reservaRepository.save(reserva);
 
         logger.info("Reserva creada exitosamente con ID {}", savedReserva.getId());
+
         return reservaMapper.toDTO(savedReserva);
     }
+
 
     public ReservaDTO updateReserva(Long id, ReservaCreateDTO reservaCreateDTO, Locale locale, User user) {
         logger.info("Actualizando reserva con ID {}", id);
@@ -109,7 +112,7 @@ public class ReservaService {
                     return new IllegalArgumentException("La reserva no existe.");
                 });
 
-        // 👇 VALIDACIÓN: solo el creador o el owner del restaurante pueden modificar
+        //  VALIDACIÓN: solo el creador o el owner del restaurante pueden modificar
         if (!existingReserva.getUser().getId().equals(user.getId()) &&
                 !existingReserva.getRestaurante().getOwner().getId().equals(user.getId())) {
             logger.warn("Usuario no autorizado a modificar la reserva ID {}", id);
